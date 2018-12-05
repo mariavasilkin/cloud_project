@@ -56,13 +56,7 @@ func getSessionLookup() func(string) (string, bool) {
 			var username string
 			// UPDATE REQUIRED
 			// Add logic to get a list of sessions from cassandra
-			row := models.Database.QueryRow("SELECT username FROM sessions WHERE session = ?", session)
-			switch err := row.Scan(&username); err {
-			case nil:
-				return username, true
-			default:
-				return "", false
-			}	
+			return username, true
 		}
 	} else {
 		return func(session string) (string, bool) {
@@ -100,11 +94,7 @@ func getSessionWriter() func(uuid.UUID, string) {
 	if models.CassandraEnabled {
 		return func(session uuid.UUID, username string) {
 			// UPDATE REQUIRED
-			// Add logic to insert session data into cassandra
-			models.Database.Exec("INSERT INTO sessions(session, username, expiration) VALUE (?, ?, ?)",
-				session.String(),
-				username,
-				uint64(time.Now().UnixNano()/1000000)+sessionDuraction)
+			// Add logic
 		}
 	} else {
 		return func(session uuid.UUID, username string) {
@@ -127,16 +117,7 @@ func getSessionListLookup() func(string) UserSessions {
 			sessionList := []string{}
 			// UPDATE REQUIRED
 			// Add logic to get a list of sessions for the user from cassadra and return an UserSessions object
-			CREATE INDEX ON session(username); // cannot do a where on a field that isn't a key in cql
-		        rows, err := models.Database.Query("SELECT session  FROM sessions WHERE usernamee = ?", username)
-			if err == nil {
-				var session string
-				for rows.Next() {
-					err := rows.Scan(&session)
-					if err == nil {
-						sessionList = append(sessionList, session)
-				}
-			}
+			sessionList := models.Database.Query("SELECT session FROM sessions WHERE username =?", username)
 			return UserSessions{sessionList}
 		}
 
@@ -152,6 +133,7 @@ func getSessionListLookup() func(string) UserSessions {
 					if err == nil {
 						sessionList = append(sessionList, session)
 					}
+					log.print(err)
 					// TODO: handle err case
 				}
 			}

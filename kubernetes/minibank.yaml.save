@@ -14,7 +14,7 @@ spec:
         app: minibank
     spec:
       containers:
-      - image: gcr.io/lab1-215021/minibank:latest
+      - image: gcr.io/kubectl run -it --rm --image=mysql:5.6 --restart=Never mysql-client -- mysql -h mysql -uminibank -pminibank/minibank:latest
         name: minibank
         env:
         - name: JWT_SECRET_KEY
